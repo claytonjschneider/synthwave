@@ -20,7 +20,7 @@ background = '#000000'
 # black to purple gradient
 horizon = {'grad': cm.gnuplot(range(28)),
         'dist': 16}
-ground = {'grad': cm.gnuplot2(range(12)),
+ground = {'grad': cm.gnuplot2(range(20)),
         'dist': 50}
 
 matplotlib.rcParams['axes.facecolor'] = background
@@ -45,6 +45,8 @@ plt.imshow([[0, 0], [1, 1]],
         extent=(xlim[0], xlim[1], 0, -ground['dist']))
 
 synth.make_sun(ax, 0, 40, 20)
+synth.make_sun_reflection(ax, 0, 40, 20)
+
 stars = synth.make_stars(ax, xlim[0], xlim[1], 10, ylim[1])
 
 # create gradient background
@@ -56,15 +58,16 @@ plt.imshow([[0, 0], [1, 1]],
         extent=(xlim[0], xlim[1], 0, horizon['dist']),
         zorder=-1)
 
-synth.make_skyline(ax, xlim[0], xlim[1], 0, 15, towers=70, color='#000000')
+heights, widths = synth.make_skyline(ax, xlim[0], xlim[1], 0, 15, towers=70, color='#000000')
+synth.make_skyline_reflection(ax, xlim[0], xlim[1], 0, 15, towers=70, color='#000000', heights=heights, widths=widths)
 
 # glow building line function
-def grid_line(x, y, c='#600080'):
-    plt.plot(x, y, color=c, linewidth=5, alpha=.2)
-    plt.plot(x, y, color=c, linewidth=4, alpha=.2)
-    plt.plot(x, y, color=c, linewidth=3, alpha=.2)
-    plt.plot(x, y, color=c, linewidth=2.5, alpha=.2)
-    plt.plot(x, y, 'black', linewidth=2, alpha=.6)
+def grid_line(x, y, c='#600080', zorder=1):
+    plt.plot(x, y, color=c, linewidth=5, alpha=.2, zorder=zorder)
+    plt.plot(x, y, color=c, linewidth=4, alpha=.2, zorder=zorder)
+    plt.plot(x, y, color=c, linewidth=3, alpha=.2, zorder=zorder)
+    plt.plot(x, y, color=c, linewidth=2.5, alpha=.2, zorder=zorder)
+    plt.plot(x, y, color=c, linewidth=2, alpha=.6, zorder=zorder)
 
 # exponential function for horizontal line movement
 def exp(x, start, end, scale=0.02):
@@ -81,6 +84,8 @@ for i in range(int(xlim[0]*10), int(xlim[1]*10), int(xlim[1]/2)):
     y = np.linspace(perspective[1], ylim[0], 60)
     # masking anything above horizon line
     y = np.ma.masked_where(y > 0, y)
+    if(i==(int(xlim[0]*10)+int(xlim[1]*10))/2):
+        y = np.ma.masked_where(y < -20, y)
     # plotting our perspective line
     grid_line(x, y)
 
@@ -97,9 +102,9 @@ for i in range(motion_lines):
     motion[str(i)]['line'], = ax.plot([], [], linewidth=2, color='w', alpha=.6)
 
 # create horizon line (we'll make a few to create illusion of distance density)
-grid_line([xlim[0], xlim[1]], [0, 0])
-grid_line([xlim[0], xlim[1]], [-.25, -.25])
-grid_line([xlim[0], xlim[1]], [-.75, -.75])
+# grid_line([xlim[0], xlim[1]], [0, 0], c='#4d4dfe')
+# grid_line([xlim[0], xlim[1]], [-.25, -.25], c='#4d4dfe')
+# grid_line([xlim[0], xlim[1]], [-.75, -.75], c='#4d4dfe')
 
 if exp_debug:
     x = np.linspace(0, 50, 50)
@@ -150,6 +155,10 @@ def animate(i):
         ax.scatter(star[0], star[1], s=star[2]+.4, alpha=alpha, c='#ffffff', zorder=0)
         dark = np.random.uniform(0, .3)
         ax.scatter(star[0], star[1], s=star[2]+.4, alpha=dark, c='#000000', zorder=0)
+
+    # make the horizon lines wiggle
+
+
 
 anim = animation.FuncAnimation(fig, animate, frames=int(frames/10), interval=20, blit=False)
 
